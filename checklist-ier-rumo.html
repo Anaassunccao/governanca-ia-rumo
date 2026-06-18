@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliação de Risco de Fornecedor · PRV &amp; SI · IER — Rumo</title>
+<style>
+  :root{
+    --navy:#16284B; --navy-deep:#0F1D38; --navy-soft:#1F3A66;
+    --teal:#2FA3A8; --teal-bright:#36C2C8; --ice:#E9F1F7;
+    --paper:#F6F8FB; --ink:#1B2533; --muted:#5A6B82; --line:#DCE5EF; --white:#fff;
+    --green:#3E8E7E; --amber:#E0A23B; --red:#C9544E; --grayna:#9AA7B8;
+    --shadow:0 10px 30px rgba(15,29,56,.10); --shadow-sm:0 4px 14px rgba(15,29,56,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:var(--ink);
+    background:var(--paper);line-height:1.55;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{line-height:1.2;letter-spacing:-.01em}
+
+  /* header */
+  .top{background:linear-gradient(160deg,var(--navy),var(--navy-deep));color:#fff;
+    padding:26px clamp(18px,4vw,52px);position:relative;overflow:hidden}
+  .top::after{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;
+    border:2px solid rgba(54,194,200,.16);border-radius:50%;border-right-color:transparent;transform:rotate(-45deg)}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .brand .logo{font-weight:800;font-size:22px;display:flex;align-items:center;gap:1px;color:#fff}
+  .brand .logo .dot{width:13px;height:13px;border:3px solid var(--teal-bright);border-radius:50%;
+    border-right-color:transparent;transform:rotate(-45deg);display:inline-block;margin-left:1px}
+  .brand .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  .brand .tag{font-size:12.5px;color:#B9CBE0;font-weight:500}
+  .top h1{font-size:clamp(22px,3.4vw,32px);font-weight:800;max-width:24ch}
+  .top .sub{color:#C9D7E8;margin-top:8px;font-size:15px;max-width:70ch}
+  .idfields{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .idfields .f{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    border-radius:10px;padding:8px 12px;font-size:12.5px;color:#B9CBE0}
+  .idfields .f b{color:#fff;display:block;font-size:13.5px;font-weight:600}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:26px clamp(14px,3vw,40px);
+    display:grid;grid-template-columns:1fr 360px;gap:26px;align-items:start}
+  @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+
+  /* tabs */
+  .tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .tab{padding:12px 22px;border-radius:40px;border:1px solid var(--line);background:#fff;
+    font-weight:700;font-size:14.5px;color:var(--muted);cursor:pointer;transition:.18s;display:flex;align-items:center;gap:9px}
+  .tab .cnt{font-size:11px;background:var(--ice);color:var(--navy-soft);border-radius:20px;padding:1px 8px;font-weight:800}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tab.active .cnt{background:var(--teal);color:#fff}
+  .pane{display:none;animation:fade .25s ease}
+  .pane.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .secnote{font-size:13.5px;color:var(--muted);margin-bottom:16px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px}
+  .secnote b{color:var(--navy)}
+
+  /* checklist item */
+  .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px;
+    box-shadow:var(--shadow-sm);transition:.15s}
+  .item:hover{box-shadow:var(--shadow)}
+  .item .q{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px}
+  .item .q h4{font-size:15.5px;color:var(--navy)}
+  .item .q p{font-size:13px;color:var(--muted);margin-top:4px}
+  .item .factor{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--teal);background:var(--ice);border-radius:20px;padding:4px 10px;white-space:nowrap}
+  .opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media(max-width:560px){.opts{grid-template-columns:repeat(2,1fr)}}
+  .opt{border:1.5px solid var(--line);border-radius:10px;padding:9px 6px;text-align:center;cursor:pointer;
+    font-size:12.5px;font-weight:700;color:var(--muted);transition:.14s;user-select:none}
+  .opt:hover{border-color:var(--navy-soft)}
+  .opt.sel.conf{background:var(--green);border-color:var(--green);color:#fff}
+  .opt.sel.parc{background:var(--amber);border-color:var(--amber);color:#fff}
+  .opt.sel.naoc{background:var(--red);border-color:var(--red);color:#fff}
+  .opt.sel.na{background:var(--grayna);border-color:var(--grayna);color:#fff}
+
+  /* IER panel (sticky) */
+  .panel{position:sticky;top:18px;background:#fff;border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .panel .head{background:linear-gradient(160deg,var(--navy),var(--navy-deep));color:#fff;padding:20px 22px;position:relative;overflow:hidden}
+  .panel .head .lbl{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-bright)}
+  .panel .head .ier{font-size:54px;font-weight:800;line-height:1;margin:6px 0 2px}
+  .panel .head .ier small{font-size:18px;color:#B9CBE0;font-weight:600}
+  .panel .head .faixa{font-size:13px;color:#C9D7E8;margin-top:4px}
+  .panel .head .badge{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;
+    border-radius:20px;padding:4px 12px}
+  .badge.lo{background:#2C6E63;color:#fff} .badge.md{background:#B5841F;color:#fff} .badge.hi{background:#A23B36;color:#fff}
+
+  .factors{padding:16px 20px}
+  .frow{margin-bottom:13px}
+  .frow .ln{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+  .frow .ln .nm{font-weight:700;color:var(--navy)} .frow .ln .nm span{color:var(--muted);font-weight:600;font-size:11px}
+  .frow .ln .vl{font-weight:800;color:var(--navy)}
+  .bar{height:7px;background:var(--ice);border-radius:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-bright));border-radius:6px;transition:width .25s}
+  .calc{font-size:11.5px;color:var(--muted);background:var(--paper);border-top:1px solid var(--line);padding:12px 20px;line-height:1.5}
+  .calc code{color:var(--navy);font-weight:700}
+  .actions{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap}
+  .btn{flex:1;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:13.5px;cursor:pointer;transition:.15s}
+  .btn.primary{background:var(--navy);color:#fff} .btn.primary:hover{background:var(--navy-soft)}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--muted)} .btn.ghost:hover{border-color:var(--navy-soft);color:var(--navy)}
+
+  .meterinfo{font-size:11.5px;color:var(--muted);padding:0 20px 16px}
+  .scale{display:flex;height:8px;border-radius:6px;overflow:hidden;margin-top:6px}
+  .scale span{flex:1} .scale .s1{background:var(--green)} .scale .s2{background:var(--amber)} .scale .s3{background:var(--red)}
+  .scalelbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+
+  footer{padding:26px 40px;text-align:center;color:var(--muted);font-size:12.5px;background:#fff;border-top:1px solid var(--line)}
+  .disc{max-width:80ch;margin:0 auto 8px;line-height:1.5}
+
+  @media print{
+    .top::after,.panel .head::after{display:none}
+    .tabs,.actions,.opt:not(.sel){display:none}
+    .pane{display:block!important}
+    .opt{border:none;padding:4px}
+    .wrap{grid-template-columns:1fr}
+    body{background:#fff}
+    .item{break-inside:avoid;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand">
+    <span class="logo">rum<span class="dot"></span></span>
+    <span class="sep"></span>
+    <span class="tag">Vendor Risk Management · Privacidade &amp; SI</span>
+  </div>
+  <h1>Avaliação de Risco de Fornecedor — Checklist PRV &amp; SI com cálculo de IER</h1>
+  <p class="sub">Preencha os dois checklists. As respostas alimentam automaticamente os seis fatores do Índice de Exposição ao Risco (IER), ponderados conforme o modelo SGR. O resultado é calculado em tempo real à direita.</p>
+  <div class="idfields">
+    <div class="f"><b id="lblForn">Fornecedor / Solução</b>preencha abaixo</div>
+    <div class="f"><b>Top Risk</b>R7 · Ambiente operacional de TI</div>
+    <div class="f"><b>Fator</b>7.2 · Tratamento de info. confidencial</div>
+    <div class="f"><b>Pilar ESG</b>Governança · Privacidade e Ética Digital</div>
+  </div>
+  <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+    <input id="forn" placeholder="Nome do fornecedor / solução" style="flex:1;min-width:220px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:14px">
+    <input id="aval" placeholder="Avaliador(a)" style="flex:1;min-width:180px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:14px">
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- LEFT: checklists -->
+  <div>
+    <div class="tabs">
+      <div class="tab active" data-tab="prv">🔒 Privacidade &amp; Proteção de Dados <span class="cnt" id="cntPrv">0/—</span></div>
+      <div class="tab" data-tab="si">🛡️ Segurança da Informação <span class="cnt" id="cntSi">0/—</span></div>
+    </div>
+
+    <!-- PRV -->
+    <div class="pane active" id="prv">
+      <div class="secnote">Lente de <b>Privacidade</b>: governança de dados, base legal, cadeia de operadores e conformidade LGPD do fornecedor. Cada item indica qual <b>fator do IER</b> ele influencia.</div>
+      <div id="prvList"></div>
+    </div>
+
+    <!-- SI -->
+    <div class="pane" id="si">
+      <div class="secnote">Lente de <b>Segurança da Informação</b>: controles técnicos, gestão de acessos, integrações, monitoramento e resposta a incidentes do fornecedor.</div>
+      <div id="siList"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: IER panel -->
+  <div class="panel">
+    <div class="head">
+      <div class="lbl">Índice de Exposição ao Risco</div>
+      <div class="ier"><span id="ierVal">—</span></div>
+      <div class="faixa" id="faixaTxt">Preencha os checklists para calcular</div>
+      <span class="badge md" id="clsBadge">Aguardando</span>
+    </div>
+    <div class="factors" id="factorRows"></div>
+    <div class="meterinfo">
+      <div>Faixa de classificação do IER</div>
+      <div class="scale"><span class="s1"></span><span class="s2"></span><span class="s3"></span></div>
+      <div class="scalelbl"><span>Controlável ~500</span><span>Prioritário 560</span><span>Crítico 680+</span></div>
+    </div>
+    <div class="calc" id="calcTxt">IER = Σ (fator × peso) × 100</div>
+    <div class="actions">
+      <button class="btn primary" onclick="window.print()">🖨️ Exportar / Imprimir parecer</button>
+      <button class="btn ghost" onclick="resetAll()">↺ Limpar</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p class="disc">Ferramenta de apoio à avaliação de risco de fornecedores (VRM). O IER segue o modelo SGR com seis fatores ponderados (IMP 25% · FACIL 15% · PROB 15% · CTRL 20% · TEMPO 15% · ORG 10%). Os valores derivados das respostas são uma sugestão automatizada — o avaliador pode e deve ajustar o julgamento final. Não constitui parecer jurídico; casos concretos devem passar por Jurídico/DPO.</p>
+  <p>Avaliação de Risco de Fornecedor · Privacidade &amp; SI · Rumo</p>
+</footer>
+
+<script>
+/* ---------- MODELO IER ----------
+   Cada fator tem peso. Cada item do checklist mapeia para um fator e
+   contribui com um valor (0-10) conforme a resposta:
+   Conforme=baixo risco, Parcial=médio, Não conforme=alto, N/A=ignora.
+   O valor do fator = média dos itens que apontam para ele.
+   IER = Σ(valorFator × peso) × 100
+---------------------------------- */
+const WEIGHTS = { IMP:0.25, FACIL:0.15, PROB:0.15, CTRL:0.20, TEMPO:0.15, ORG:0.10 };
+const FACTOR_NAME = {
+  IMP:"Impacto", FACIL:"Facilidade", PROB:"Probabilidade",
+  CTRL:"Controle", TEMPO:"Tempo de mitigação", ORG:"Organizacional"
+};
+// resposta -> valor de risco (0-10). N/A = null (não conta)
+const ANSWER_VAL = { conf:2, parc:6, naoc:9, na:null };
+const ANSWER_LBL = { conf:"Conforme", parc:"Parcial", naoc:"Não conforme", na:"N/A" };
+
+/* Itens. factor = qual fator do IER recebe a resposta.
+   Para CTRL/FACIL a lógica é a mesma: "Conforme" = controle bom = risco baixo. */
+const PRV_ITEMS = [
+  {id:"p1", factor:"CTRL", q:"DPA / acordo de tratamento firmado", d:"Existe contrato direto com o operador, com cláusulas de segurança, confidencialidade e incidentes?"},
+  {id:"p2", factor:"CTRL", q:"Cadeia de suboperadores mapeada e monitorada", d:"O fornecedor declara e monitora seus subcontratados que tocam os dados?"},
+  {id:"p3", factor:"IMP",  q:"Sensibilidade e volume dos dados tratados", d:"Conforme = dado agregado/baixo volume · Não conforme = dado pessoal massivo/sensível."},
+  {id:"p4", factor:"PROB", q:"Base legal e finalidade documentadas", d:"Há finalidade clara e base legal adequada para o tratamento na integração?"},
+  {id:"p5", factor:"PROB", q:"Minimização e não-enriquecimento", d:"Coleta restrita ao necessário; dados não são usados para enriquecer o modelo/produto do fornecedor."},
+  {id:"p6", factor:"ORG",  q:"ROPA e ciclo de vida do dado", d:"Operações registradas no ROPA, com tempo de guarda e descarte seguro definidos."},
+  {id:"p7", factor:"IMP",  q:"Transferência internacional de dados", d:"Conforme = dados em território nacional · Não conforme = transferência sem salvaguardas."},
+  {id:"p8", factor:"TEMPO",q:"Gaps de privacidade são corrigíveis em curto prazo", d:"As lacunas dependem só de ajuste documental/contratual (rápido) ou de mudança estrutural (lento)?"},
+];
+const SI_ITEMS = [
+  {id:"s1", factor:"CTRL", q:"Gestão de acessos (RBAC, MFA, SSO)", d:"Controle de acesso por função, MFA e revisão periódica de perfis implementados."},
+  {id:"s2", factor:"CTRL", q:"Criptografia em trânsito e repouso", d:"Dados cifrados em ambos os estados, com gestão de chaves adequada."},
+  {id:"s3", factor:"FACIL",q:"Segregação de ambientes e integrações", d:"Conforme = ambiente totalmente segregado · Não conforme = integração ampla e recorrente com a rede interna."},
+  {id:"s4", factor:"FACIL",q:"Superfície de exposição da solução", d:"Conforme = exposição mínima/interna · Não conforme = múltiplos pontos de integração e superfície ampla."},
+  {id:"s5", factor:"CTRL", q:"Rastreabilidade e logging", d:"Trilhas de auditoria, retenção de logs e alertas para comportamento anômalo."},
+  {id:"s6", factor:"PROB", q:"Maturidade de SI do fornecedor (due diligence)", d:"Resultado da due diligence/VRM: certificações, políticas e histórico de incidentes."},
+  {id:"s7", factor:"ORG",  q:"Gestão de incidentes e reporte", d:"Processo formal de resposta e SLA de reporte de incidentes acordado."},
+  {id:"s8", factor:"TEMPO",q:"Plano de ação corretivo viável", d:"Existe plano claro e exequível para fechar os gaps de SI em curto prazo?"},
+  {id:"s9", factor:"PROB", q:"Auditoria/reavaliação contínua", d:"Conforme = reavaliação periódica e auditoria contínua · Não conforme = avaliação só pontual."},
+];
+
+const state = {}; // id -> answer key
+
+function buildList(items, containerId){
+  const c = document.getElementById(containerId);
+  c.innerHTML = "";
+  items.forEach(it=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="q">
+        <div><h4>${it.q}</h4><p>${it.d}</p></div>
+        <span class="factor">${it.factor}</span>
+      </div>
+      <div class="opts" data-id="${it.id}">
+        <div class="opt conf" data-a="conf">Conforme</div>
+        <div class="opt parc" data-a="parc">Parcial</div>
+        <div class="opt naoc" data-a="naoc">Não conf.</div>
+        <div class="opt na"   data-a="na">N/A</div>
+      </div>`;
+    c.appendChild(div);
+  });
+}
+
+function recompute(){
+  // agrupa valores por fator
+  const buckets = {IMP:[],FACIL:[],PROB:[],CTRL:[],TEMPO:[],ORG:[]};
+  [...PRV_ITEMS, ...SI_ITEMS].forEach(it=>{
+    const a = state[it.id];
+    if(!a) return;
+    const v = ANSWER_VAL[a];
+    if(v===null) return;
+    buckets[it.factor].push(v);
+  });
+  // valor de cada fator = média (default 5 se sem dado, neutro)
+  const fval = {};
+  let anyData = false;
+  for(const f in buckets){
+    if(buckets[f].length){ fval[f] = buckets[f].reduce((a,b)=>a+b,0)/buckets[f].length; anyData=true; }
+    else { fval[f] = 5; } // neutro
+  }
+  // IER
+  let ier = 0;
+  for(const f in WEIGHTS){ ier += fval[f]*WEIGHTS[f]; }
+  const ier100 = Math.round(ier*100);
+
+  // render factor rows
+  const fr = document.getElementById("factorRows");
+  fr.innerHTML = "";
+  for(const f in WEIGHTS){
+    const pct = (fval[f]/10)*100;
+    const row = document.createElement("div");
+    row.className="frow";
+    row.innerHTML = `
+      <div class="ln"><span class="nm">${f} <span>${FACTOR_NAME[f]} · ${Math.round(WEIGHTS[f]*100)}%</span></span>
+      <span class="vl">${fval[f].toFixed(1)}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>`;
+    fr.appendChild(row);
+  }
+
+  // counters
+  const prvDone = PRV_ITEMS.filter(i=>state[i.id]).length;
+  const siDone  = SI_ITEMS.filter(i=>state[i.id]).length;
+  document.getElementById("cntPrv").textContent = `${prvDone}/${PRV_ITEMS.length}`;
+  document.getElementById("cntSi").textContent  = `${siDone}/${SI_ITEMS.length}`;
+
+  // display
+  if(!anyData){
+    document.getElementById("ierVal").textContent = "—";
+    document.getElementById("faixaTxt").textContent = "Preencha os checklists para calcular";
+    document.getElementById("clsBadge").textContent = "Aguardando";
+    document.getElementById("clsBadge").className = "badge md";
+    document.getElementById("calcTxt").innerHTML = "IER = Σ (fator × peso) × 100";
+    return;
+  }
+  document.getElementById("ierVal").innerHTML = ier100 + ' <small>IER</small>';
+
+  // classificação por faixa
+  const badge = document.getElementById("clsBadge");
+  let cls, txt;
+  if(ier100 < 500){ cls="lo"; txt="Baixa exposição"; }
+  else if(ier100 < 600){ cls="md"; txt="Prioritário controlável"; }
+  else if(ier100 < 680){ cls="md"; txt="Atenção elevada"; }
+  else { cls="hi"; txt="Crítico"; }
+  badge.className = "badge "+cls;
+  badge.textContent = txt;
+  document.getElementById("faixaTxt").textContent =
+    `Faixa: mínimo ~500 · baseline 560 · máximo ~680`;
+
+  // calc breakdown
+  const parts = Object.keys(WEIGHTS).map(f=>`${fval[f].toFixed(1)}×${WEIGHTS[f]}`).join(" + ");
+  document.getElementById("calcTxt").innerHTML =
+    `<code>IER = (${parts}) × 100 = ${ier100}</code>`;
+}
+
+// event delegation for option clicks
+document.addEventListener("click", e=>{
+  const opt = e.target.closest(".opt");
+  if(!opt) return;
+  const grp = opt.parentElement;
+  const id = grp.dataset.id;
+  const a = opt.dataset.a;
+  // toggle off if same
+  if(state[id]===a){ delete state[id]; grp.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel")); recompute(); return; }
+  state[id]=a;
+  grp.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel", o.dataset.a===a));
+  recompute();
+});
+
+// tabs
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById(t.dataset.tab).classList.add("active");
+  });
+});
+
+// forn label
+document.getElementById("forn").addEventListener("input",e=>{
+  document.getElementById("lblForn").textContent = e.target.value || "Fornecedor / Solução";
+});
+
+function resetAll(){
+  for(const k in state) delete state[k];
+  document.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
+  recompute();
+}
+
+buildList(PRV_ITEMS,"prvList");
+buildList(SI_ITEMS,"siList");
+recompute();
+</script>
+</body>
+</html>
