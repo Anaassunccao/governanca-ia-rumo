@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Governança de IA · Rumo — Proposta SI & Privacidade</title>
+<style>
+  :root{
+    --navy:#16284B;        /* azul Rumo dominante */
+    --navy-deep:#0F1D38;
+    --navy-soft:#1F3A66;
+    --teal:#2FA3A8;        /* acento do logo */
+    --teal-bright:#36C2C8;
+    --ice:#E9F1F7;
+    --paper:#F6F8FB;
+    --ink:#1B2533;
+    --muted:#5A6B82;
+    --line:#DCE5EF;
+    --amber:#E0A23B;
+    --red:#C9544E;
+    --green:#3E8E7E;
+    --white:#FFFFFF;
+    --shadow:0 10px 30px rgba(15,29,56,.10);
+    --shadow-sm:0 4px 14px rgba(15,29,56,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+    color:var(--ink);background:var(--paper);line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{line-height:1.2;letter-spacing:-.01em}
+
+  /* ---------- NAV ---------- */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;height:62px;z-index:100;
+    background:rgba(22,40,75,.96);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(16px,4vw,48px);
+  }
+  .brand{display:flex;align-items:center;gap:12px;color:#fff}
+  .brand .logo{
+    font-weight:800;font-size:22px;letter-spacing:-.02em;color:#fff;
+    display:flex;align-items:center;gap:2px;
+  }
+  .brand .logo .dot{
+    width:13px;height:13px;border:3px solid var(--teal-bright);border-radius:50%;
+    border-right-color:transparent;transform:rotate(-45deg);display:inline-block;margin-left:1px;
+  }
+  .brand .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  .brand .tag{font-size:12.5px;color:#B9CBE0;font-weight:500;letter-spacing:.02em}
+  .navlinks{display:flex;gap:6px;flex-wrap:wrap}
+  .navlinks a{
+    color:#C5D4E8;text-decoration:none;font-size:13px;font-weight:600;
+    padding:7px 12px;border-radius:8px;transition:.18s;white-space:nowrap;
+  }
+  .navlinks a:hover{background:rgba(255,255,255,.10);color:#fff}
+  @media(max-width:880px){.navlinks{display:none}}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(47,163,168,.28), transparent 60%),
+      linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%);
+    color:#fff;padding:130px clamp(20px,6vw,90px) 80px;position:relative;overflow:hidden;
+  }
+  .hero::after{
+    content:"";position:absolute;right:-120px;bottom:-120px;width:420px;height:420px;
+    border:2px solid rgba(54,194,200,.18);border-radius:50%;
+    border-right-color:transparent;transform:rotate(-45deg);
+  }
+  .hero .kicker{
+    display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--teal-bright);
+    border:1px solid rgba(54,194,200,.4);padding:6px 14px;border-radius:40px;margin-bottom:22px;
+  }
+  .hero h1{font-size:clamp(30px,5vw,52px);font-weight:800;max-width:16ch;margin-bottom:18px}
+  .hero h1 em{color:var(--teal-bright);font-style:normal}
+  .hero p.lead{font-size:clamp(16px,2vw,20px);color:#C9D7E8;max-width:62ch;font-weight:400}
+  .hero .meta{
+    margin-top:34px;display:flex;gap:28px;flex-wrap:wrap;font-size:13.5px;color:#9FB4CE;
+  }
+  .hero .meta b{color:#fff;font-weight:600;display:block;font-size:15px}
+  .scrollcue{margin-top:46px;font-size:13px;color:#7E95B5;letter-spacing:.04em}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:64px clamp(20px,6vw,90px);max-width:1180px;margin:0 auto}
+  .sec-tag{
+    font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .sec-tag::before{content:"";width:24px;height:2px;background:var(--teal);display:inline-block}
+  h2.sec-title{font-size:clamp(24px,3.4vw,36px);font-weight:800;color:var(--navy);margin-bottom:14px}
+  .sec-intro{font-size:17px;color:var(--muted);max-width:74ch;margin-bottom:36px}
+
+  /* problem cards */
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;
+    box-shadow:var(--shadow-sm);transition:.2s;
+  }
+  .card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+  .card .ico{
+    width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;margin-bottom:14px;background:var(--ice);
+  }
+  .card h3{font-size:18px;color:var(--navy);margin-bottom:8px}
+  .card p{font-size:14.5px;color:var(--muted)}
+
+  /* gap callout (real evidence from docs) */
+  .evidence{
+    background:linear-gradient(135deg,#FBF4E8,#FDF9F1);border:1px solid #EAD8B6;
+    border-radius:16px;padding:28px 30px;display:flex;gap:22px;align-items:flex-start;margin-top:8px;
+  }
+  .evidence .badge{
+    flex:none;width:54px;height:54px;border-radius:12px;background:var(--amber);
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+  }
+  .evidence h3{color:#8A6212;font-size:18px;margin-bottom:6px}
+  .evidence p{color:#6E5A2E;font-size:14.5px}
+  .evidence code{
+    background:#fff;border:1px solid #E3D2A8;border-radius:6px;padding:1px 7px;
+    font-size:13px;color:#8A6212;font-weight:600;
+  }
+
+  /* dark band */
+  .band{
+    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+    color:#fff;border-radius:22px;padding:48px clamp(24px,4vw,56px);position:relative;overflow:hidden;
+  }
+  .band::after{
+    content:"";position:absolute;right:-80px;top:-80px;width:280px;height:280px;
+    border:2px solid rgba(54,194,200,.16);border-radius:50%;border-right-color:transparent;
+    transform:rotate(-45deg);
+  }
+  .band h2{font-size:clamp(22px,3vw,32px);font-weight:800;margin-bottom:12px}
+  .band .principles{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px}
+  @media(max-width:900px){.band .principles{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.band .principles{grid-template-columns:1fr}}
+  .principle{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;padding:20px}
+  .principle .n{font-size:13px;color:var(--teal-bright);font-weight:800;letter-spacing:.1em}
+  .principle h4{font-size:16px;margin:6px 0 6px;color:#fff}
+  .principle p{font-size:13px;color:#B9CBE0}
+
+  /* RACI table */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+  table{width:100%;border-collapse:collapse;background:#fff;min-width:640px}
+  th,td{padding:14px 16px;text-align:left;font-size:14px;border-bottom:1px solid var(--line)}
+  thead th{background:var(--navy);color:#fff;font-weight:600;font-size:13px;letter-spacing:.02em}
+  tbody tr:last-child td{border-bottom:none}
+  td.role{font-weight:600;color:var(--navy)}
+  .pill{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;
+    border-radius:7px;font-weight:800;font-size:12px}
+  .pill.R{background:#DCEFEC;color:#2C6E63}
+  .pill.A{background:var(--navy);color:#fff}
+  .pill.C{background:#FBF0DC;color:#9A6E1E}
+  .pill.I{background:#EEF2F7;color:#5A6B82}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:7px}
+
+  /* process flow */
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:step}
+  @media(max-width:980px){.flow{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.flow{grid-template-columns:1fr}}
+  .step{
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 18px;position:relative;
+    box-shadow:var(--shadow-sm);
+  }
+  .step .num{
+    width:34px;height:34px;border-radius:9px;background:var(--navy);color:#fff;font-weight:800;
+    display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px;
+  }
+  .step h4{font-size:15.5px;color:var(--navy);margin-bottom:6px}
+  .step p{font-size:13px;color:var(--muted)}
+  .step .owner{margin-top:10px;font-size:11.5px;font-weight:700;color:var(--teal);
+    text-transform:uppercase;letter-spacing:.06em}
+
+  /* risk tiers / interactive */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:900px){.tiers{grid-template-columns:1fr}}
+  .tier{border-radius:16px;padding:26px;color:#fff;position:relative;overflow:hidden;cursor:pointer;transition:.2s}
+  .tier:hover{transform:translateY(-3px)}
+  .tier.low{background:linear-gradient(150deg,#3E8E7E,#2F6E62)}
+  .tier.med{background:linear-gradient(150deg,#E0A23B,#C2842A)}
+  .tier.high{background:linear-gradient(150deg,#C9544E,#A23B36)}
+  .tier h3{font-size:20px;margin-bottom:6px}
+  .tier .lvl{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+  .tier ul{list-style:none;margin-top:14px;font-size:13.5px}
+  .tier li{padding:5px 0 5px 22px;position:relative;border-top:1px solid rgba(255,255,255,.18)}
+  .tier li::before{content:"›";position:absolute;left:6px;font-weight:800}
+  .tier .out{margin-top:16px;font-size:13px;background:rgba(0,0,0,.18);border-radius:10px;padding:10px 12px}
+
+  /* criteria tabs */
+  .tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+  .tab{
+    padding:11px 22px;border-radius:40px;border:1px solid var(--line);background:#fff;
+    font-weight:700;font-size:14px;color:var(--muted);cursor:pointer;transition:.18s;
+  }
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tabpane{display:none;animation:fade .3s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .checklist{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.checklist{grid-template-columns:1fr}}
+  .check{
+    display:flex;gap:14px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px 18px;
+  }
+  .check .mk{flex:none;width:28px;height:28px;border-radius:8px;background:var(--ice);color:var(--teal);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .check .mk.si{background:#E7EEF8;color:var(--navy-soft)}
+  .check h4{font-size:14.5px;color:var(--navy);margin-bottom:3px}
+  .check p{font-size:13px;color:var(--muted)}
+
+  /* artifact / parecer */
+  .verdict{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+  @media(max-width:760px){.verdict{grid-template-columns:1fr}}
+  .vbox{border:1px solid var(--line);border-radius:14px;padding:20px;background:#fff}
+  .vbox .dot{width:14px;height:14px;border-radius:50%;display:inline-block;margin-right:8px}
+  .vbox.g .dot{background:var(--green)} .vbox.a .dot{background:var(--amber)} .vbox.r .dot{background:var(--red)}
+  .vbox h4{font-size:15px;color:var(--navy);display:flex;align-items:center}
+  .vbox p{font-size:13px;color:var(--muted);margin-top:6px}
+
+  /* roadmap */
+  .road{position:relative;padding-left:34px}
+  .road::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .phase{position:relative;margin-bottom:26px}
+  .phase::before{content:"";position:absolute;left:-29px;top:4px;width:18px;height:18px;border-radius:50%;
+    background:#fff;border:3px solid var(--teal)}
+  .phase .when{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}
+  .phase h4{font-size:18px;color:var(--navy);margin:4px 0 8px}
+  .phase ul{margin-left:18px;font-size:14px;color:var(--muted)}
+  .phase li{margin-bottom:4px}
+
+  /* ask / cta */
+  .ask{background:linear-gradient(160deg,var(--navy),var(--navy-deep));color:#fff;border-radius:22px;
+    padding:48px clamp(24px,4vw,56px);text-align:center;position:relative;overflow:hidden}
+  .ask h2{font-size:clamp(24px,3.4vw,34px);margin-bottom:14px}
+  .ask p{color:#C9D7E8;max-width:60ch;margin:0 auto 28px;font-size:16px}
+  .asklist{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left;margin-top:8px}
+  @media(max-width:760px){.asklist{grid-template-columns:1fr}}
+  .askitem{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px}
+  .askitem .n{color:var(--teal-bright);font-weight:800;font-size:22px}
+  .askitem h4{margin:6px 0 5px;font-size:15.5px}
+  .askitem p{color:#B9CBE0;font-size:13px;margin:0}
+
+  footer{padding:40px;text-align:center;color:var(--muted);font-size:13px;background:#fff;border-top:1px solid var(--line)}
+  .disc{max-width:70ch;margin:0 auto 10px;font-size:12.5px;line-height:1.5}
+
+  /* progress bar */
+  #progress{position:fixed;top:62px;left:0;height:3px;background:var(--teal-bright);width:0;z-index:99;transition:width .1s}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo">rum<span class="dot"></span></span>
+    <span class="sep"></span>
+    <span class="tag">Governança de IA · SI &amp; Privacidade</span>
+  </div>
+  <nav class="navlinks">
+    <a href="#contexto">Contexto</a>
+    <a href="#diagnostico">Diagnóstico</a>
+    <a href="#principios">Princípios</a>
+    <a href="#papeis">Papéis</a>
+    <a href="#processo">Processo</a>
+    <a href="#risco">Risco</a>
+    <a href="#criterios">Critérios</a>
+    <a href="#parecer">Parecer</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#pedido">O pedido</a>
+  </nav>
+</div>
+<div id="progress"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="kicker">Proposta interna · Cyber / SI · Privacidade e Proteção de Dados</span>
+  <h1>Governança mínima para <em>avaliação de IA</em> na Rumo</h1>
+  <p class="lead">Uma proposta para padronizar como projetos com Inteligência Artificial são triados, avaliados e homologados — unindo a lente de <strong>Segurança da Informação</strong> à avaliação de <strong>Privacidade</strong> que já praticamos hoje.</p>
+  <div class="meta">
+    <div><b>Para</b>CISO · Liderança de Cyber/SI</div>
+    <div><b>De</b>Privacidade &amp; Proteção de Dados (time Cyber)</div>
+    <div><b>Escopo</b>IA tradicional/ML + IA generativa</div>
+    <div><b>Objetivo</b>Governança mínima + processo operacional</div>
+  </div>
+  <div class="scrollcue">↓ Role para navegar pela proposta</div>
+</header>
+
+<!-- CONTEXTO -->
+<section id="contexto">
+  <div class="sec-tag">Por que agora</div>
+  <h2 class="sec-title">O contexto que motiva esta proposta</h2>
+  <p class="sec-intro">Os projetos de IA na Rumo são conduzidos por outras áreas, mas a homologação e a avaliação de tratamento de dados passam por nós. Hoje produzimos pareceres sólidos pela ótica de privacidade — falta amarrar a ótica de Segurança da Informação e padronizar o fluxo, antes que o volume de casos cresça sem trilho.</p>
+  <div class="grid g3">
+    <div class="card">
+      <div class="ico">🚆</div>
+      <h3>IA já está em operação</h3>
+      <p>Vários projetos rodando em áreas distintas — de analytics preditivo a soluções com IA generativa — sem um padrão único de avaliação.</p>
+    </div>
+    <div class="card">
+      <div class="ico">🧭</div>
+      <h3>Avaliação só por privacidade</h3>
+      <p>A homologação atual nasce na ótica de proteção de dados. A camada de SI (modelo, dados de treino, fornecedor, superfície de ataque) entra de forma pontual, não estruturada.</p>
+    </div>
+    <div class="card">
+      <div class="ico">⚖️</div>
+      <h3>Pressão regulatória e de IA</h3>
+      <p>LGPD vigente, debate do marco legal de IA no Brasil e referências como o NIST AI RMF e a ISO/IEC 42001 elevam a régua de governança esperada.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DIAGNOSTICO -->
+<section id="diagnostico">
+  <div class="sec-tag">Diagnóstico do estado atual</div>
+  <h2 class="sec-title">O que já funciona — e onde está o vão</h2>
+  <p class="sec-intro">A proposta parte do que já existe e funciona. Dois artefatos atuais ilustram bem o ponto: o <strong>checklist de triagem (Privacy by Design)</strong> e o <strong>parecer de homologação</strong>. São bons instrumentos — e revelam exatamente onde o trilho precisa ser estendido.</p>
+
+  <div class="grid g2" style="margin-bottom:24px">
+    <div class="card">
+      <div class="ico" style="background:#DCEFEC">✅</div>
+      <h3>O que já temos de bom</h3>
+      <p>Checklist de entrada em plataforma (becompliance); parecer estruturado com descrição, dados tratados, medidas de proteção, conformidade contratual (DPA), ROPA e conclusão com ressalvas e ações obrigatórias. Boa base documental.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="background:#FBE9E7">⚠️</div>
+      <h3>Onde está o vão</h3>
+      <p>A triagem dispara pelo "há dado pessoal?", não pelo "há IA?". A avaliação de IA se resume a finalidade, treino e decisão automatizada. Falta lente de SI sobre o modelo, o fornecedor e a superfície técnica — e falta um gatilho que impeça casos de IA de escaparem.</p>
+    </div>
+  </div>
+
+  <div class="evidence">
+    <div class="badge">🔍</div>
+    <div>
+      <h3>Evidência real do fluxo atual</h3>
+      <p>No checklist do projeto <em>"Fundamentos em Supply Chain Management"</em>, a solução respondeu <code>IA = Sim</code> mas <code>tratamento de dados = Não</code>, terminou com status <code>Sem aprovação</code> e declaração de não-tratamento <code>Não informado</code>. Resultado prático: <strong>existe IA no projeto, mas o fluxo não garante uma avaliação de IA</strong> — porque ele é amarrado a dado pessoal, não à presença de IA. Esse é precisamente o gatilho que a governança mínima fecha.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPIOS -->
+<section id="principios">
+  <div class="band">
+    <div class="sec-tag" style="color:var(--teal-bright)">Fundação</div>
+    <h2>Princípios da governança mínima</h2>
+    <p style="color:#C9D7E8;max-width:70ch">Quatro princípios que mantêm o processo leve o suficiente para não travar a inovação, e firme o suficiente para dar rastreabilidade e defensabilidade. Inspirados em <strong>NIST AI RMF</strong>, <strong>ISO/IEC 42001</strong> e <strong>LGPD</strong>, adaptados à realidade da Rumo.</p>
+    <div class="principles">
+      <div class="principle"><div class="n">01</div><h4>Proporcional ao risco</h4><p>O rigor da avaliação acompanha o risco do caso de uso — não trata todo projeto igual.</p></div>
+      <div class="principle"><div class="n">02</div><h4>Duas lentes, um parecer</h4><p>SI e Privacidade avaliam em paralelo e convergem num único parecer rastreável.</p></div>
+      <div class="principle"><div class="n">03</div><h4>Gatilho na origem</h4><p>Todo projeto que envolva IA entra na esteira — independentemente de tratar dado pessoal.</p></div>
+      <div class="principle"><div class="n">04</div><h4>Reavaliação contínua</h4><p>Mudança de escopo, de modelo ou de fornecedor reabre a avaliação. Nada é homologado "para sempre".</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PAPEIS -->
+<section id="papeis">
+  <div class="sec-tag">Modelo de governança</div>
+  <h2 class="sec-title">Quem faz o quê — RACI mínimo</h2>
+  <p class="sec-intro">Governança mínima não significa novo comitê pesado. Significa papéis claros sobre o fluxo que já existe. A área de IA continua dona da solução; SI e Privacidade são pontos de controle de homologação.</p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Atividade</th>
+          <th>Área de IA / Negócio</th>
+          <th>Privacidade</th>
+          <th>Segurança da Informação</th>
+          <th>CISO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="role">Submeter projeto / preencher triagem</td><td><span class="pill R">R</span></td><td><span class="pill C">C</span></td><td><span class="pill I">I</span></td><td><span class="pill I">I</span></td></tr>
+        <tr><td class="role">Classificar risco do caso de uso</td><td><span class="pill C">C</span></td><td><span class="pill R">R</span></td><td><span class="pill R">R</span></td><td><span class="pill I">I</span></td></tr>
+        <tr><td class="role">Avaliação de Privacidade</td><td><span class="pill C">C</span></td><td><span class="pill A">A</span></td><td><span class="pill C">C</span></td><td><span class="pill I">I</span></td></tr>
+        <tr><td class="role">Avaliação de SI sobre IA</td><td><span class="pill C">C</span></td><td><span class="pill C">C</span></td><td><span class="pill A">A</span></td><td><span class="pill I">I</span></td></tr>
+        <tr><td class="role">Emitir parecer consolidado</td><td><span class="pill I">I</span></td><td><span class="pill R">R</span></td><td><span class="pill R">R</span></td><td><span class="pill C">C</span></td></tr>
+        <tr><td class="role">Decisão de homologação (alto risco)</td><td><span class="pill I">I</span></td><td><span class="pill C">C</span></td><td><span class="pill C">C</span></td><td><span class="pill A">A</span></td></tr>
+        <tr><td class="role">Reavaliação por mudança de escopo</td><td><span class="pill R">R</span></td><td><span class="pill A">A</span></td><td><span class="pill A">A</span></td><td><span class="pill I">I</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="legend">
+    <span><span class="pill R">R</span> Responsável (executa)</span>
+    <span><span class="pill A">A</span> Aprova (responde por)</span>
+    <span><span class="pill C">C</span> Consultado</span>
+    <span><span class="pill I">I</span> Informado</span>
+  </div>
+</section>
+
+<!-- PROCESSO -->
+<section id="processo">
+  <div class="sec-tag">Processo operacional</div>
+  <h2 class="sec-title">A esteira de avaliação, ponta a ponta</h2>
+  <p class="sec-intro">Cinco estágios. O fluxo aproveita a triagem e o parecer que já existem, adicionando o gatilho de IA, a classificação de risco e a lente de SI. O caminho de baixo risco é rápido; só os casos relevantes escalam.</p>
+  <div class="flow">
+    <div class="step">
+      <div class="num">1</div>
+      <h4>Triagem de entrada</h4>
+      <p>Checklist Privacy by Design + gatilho "envolve IA?". Se sim, o projeto entra na esteira mesmo sem dado pessoal.</p>
+      <div class="owner">Área de IA</div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <h4>Classificação de risco</h4>
+      <p>Caso de uso é enquadrado em Baixo / Médio / Alto risco, definindo a profundidade da avaliação.</p>
+      <div class="owner">Privacidade + SI</div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <h4>Avaliação dupla</h4>
+      <p>Privacidade e SI avaliam em paralelo, cada um com seu checklist, sobre o mesmo caso.</p>
+      <div class="owner">Privacidade + SI</div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <h4>Parecer consolidado</h4>
+      <p>Um único parecer: Apto / Apto com ressalvas / Não apto, com ações obrigatórias e recomendadas.</p>
+      <div class="owner">Privacidade + SI</div>
+    </div>
+    <div class="step">
+      <div class="num">5</div>
+      <h4>Decisão &amp; registro</h4>
+      <p>Homologação registrada. Alto risco é aprovado pelo CISO. Mudança de escopo reabre o ciclo.</p>
+      <div class="owner">CISO / Registro</div>
+    </div>
+  </div>
+</section>
+
+<!-- RISCO -->
+<section id="risco">
+  <div class="sec-tag">Triagem por risco</div>
+  <h2 class="sec-title">Três níveis de risco, três profundidades</h2>
+  <p class="sec-intro">A classificação evita tratar um chatbot interno de FAQ com o mesmo rigor de um modelo que apoia decisão sobre pessoas. Critérios combinam: impacto sobre titulares, criticidade operacional/ferroviária, sensibilidade dos dados, autonomia da decisão e exposição do modelo.</p>
+  <div class="tiers">
+    <div class="tier low">
+      <div class="lvl">Nível 1</div>
+      <h3>Baixo risco</h3>
+      <ul>
+        <li>Sem dado pessoal ou só dado interno trivial</li>
+        <li>IA assistiva, humano sempre decide</li>
+        <li>Sem impacto operacional crítico</li>
+      </ul>
+      <div class="out"><strong>Saída:</strong> avaliação simplificada + registro. Homologação ágil.</div>
+    </div>
+    <div class="tier med">
+      <div class="lvl">Nível 2</div>
+      <h3>Médio risco</h3>
+      <ul>
+        <li>Dado pessoal não sensível em volume</li>
+        <li>Fornecedor externo / IA generativa</li>
+        <li>Apoio a decisão com revisão humana</li>
+      </ul>
+      <div class="out"><strong>Saída:</strong> avaliação completa SI + Privacidade, DPA e controles exigidos.</div>
+    </div>
+    <div class="tier high">
+      <div class="lvl">Nível 3</div>
+      <h3>Alto risco</h3>
+      <ul>
+        <li>Dado sensível, perfilamento ou decisão automatizada</li>
+        <li>Impacto em segurança operacional/ferroviária</li>
+        <li>Modelo exposto externamente</li>
+      </ul>
+      <div class="out"><strong>Saída:</strong> avaliação aprofundada + DPIA/LIA + aprovação do CISO.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CRITERIOS -->
+<section id="criterios">
+  <div class="sec-tag">Critérios de avaliação</div>
+  <h2 class="sec-title">As duas lentes, lado a lado</h2>
+  <p class="sec-intro">O coração da proposta. A lente de Privacidade formaliza e expande o que já fazemos; a lente de SI é o que se quer adicionar. Juntas formam o checklist do avaliador. Alterne entre as abas.</p>
+  <div class="tabs">
+    <div class="tab active" data-tab="si">🛡️ Lente Segurança da Informação</div>
+    <div class="tab" data-tab="priv">🔒 Lente Privacidade &amp; Dados</div>
+  </div>
+
+  <div class="tabpane active" id="si">
+    <div class="checklist">
+      <div class="check"><div class="mk si">◆</div><div><h4>Dados de treinamento</h4><p>Origem, propriedade e classificação dos dados que treinam/ajustam o modelo. Há dado da Rumo? Houve consentimento de uso?</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Fornecedor e cadeia</h4><p>Postura de SI do fornecedor de IA, suboperadores, soberania de dados, certificações, contrato e cláusulas de incidente.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Superfície de ataque do modelo</h4><p>Riscos de prompt injection, vazamento por inferência, model/data poisoning, exfiltração via saída do modelo.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Controle de acesso e segregação</h4><p>RBAC, MFA, SSO, segregação de perfis e ambientes; quem acessa o modelo, prompts e logs.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Rastreabilidade e logging</h4><p>Trilhas de auditoria de prompts/inferências, retenção de logs, detecção de uso anômalo do modelo.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Vazamento por output / DLP</h4><p>Risco de a IA expor dado sensível na resposta; controles de DLP, mascaramento e filtros de saída.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Resiliência e dependência</h4><p>Disponibilidade, plano de contingência se o modelo/fornecedor cair, impacto operacional da indisponibilidade.</p></div></div>
+      <div class="check"><div class="mk si">◆</div><div><h4>Shadow AI</h4><p>Uso não homologado de ferramentas de IA (ex.: GenAI pública) por colaboradores; política de uso aceitável.</p></div></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="priv">
+    <div class="checklist">
+      <div class="check"><div class="mk">●</div><div><h4>Base legal e finalidade</h4><p>Finalidade da IA documentada, base legal adequada, compatibilidade com a finalidade original da coleta.</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>Minimização e necessidade</h4><p>Só os dados necessários alimentam o modelo; sem coleta excessiva para "enriquecer" a solução.</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>Decisão automatizada / perfilamento</h4><p>Há decisão automatizada que afeta o titular? Direito a revisão humana (LGPD art. 20) está garantido?</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>Enriquecimento do modelo</h4><p>Dados da Rumo são usados para treinar/melhorar o modelo do fornecedor? Cláusula de não-enriquecimento.</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>Anonimização em Dev/QA</h4><p>Anonimização obrigatória em ambientes de desenvolvimento e teste — não "quando necessário".</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>DPA e cadeia de operadores</h4><p>Contrato/DPA direto com o operador tecnológico; sem isso, risco de responsabilização solidária.</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>ROPA e ciclo de vida</h4><p>Registro das operações, compartilhamentos, tempo de guarda e descarte seguro ao fim do ciclo.</p></div></div>
+      <div class="check"><div class="mk">●</div><div><h4>Transferência internacional</h4><p>Onde o modelo processa? Há transferência internacional? Salvaguardas adequadas para o destino.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PARECER -->
+<section id="parecer">
+  <div class="sec-tag">Artefato final</div>
+  <h2 class="sec-title">O parecer consolidado — evoluído</h2>
+  <p class="sec-intro">Mantemos o formato do parecer que já emitimos (descrição, dados, medidas, conformidade, conclusão), agora com uma seção dedicada de SI sobre IA e uma conclusão de risco padronizada nas duas óticas.</p>
+  <div class="verdict">
+    <div class="vbox g"><h4><span class="dot"></span>Apto</h4><p>Risco aceitável nas duas lentes. Segue para homologação com registro e monitoramento padrão.</p></div>
+    <div class="vbox a"><h4><span class="dot"></span>Apto com ressalvas</h4><p>Segue mediante ações obrigatórias antes da homologação final (ex.: firmar DPA, exigir doc. técnica da IA, DLP).</p></div>
+    <div class="vbox r"><h4><span class="dot"></span>Não apto</h4><p>Risco residual incompatível. Bloqueia até reestruturação; alto risco escala ao CISO.</p></div>
+  </div>
+  <div class="card" style="margin-top:22px">
+    <h3>Seção nova no parecer — "Avaliação de SI sobre IA"</h3>
+    <p>Campos sugeridos: tipo de IA (tradicional/generativa), origem dos dados de treino, uso para enriquecimento, fornecedor e suboperadores, superfície de ataque avaliada, controles de acesso e logging do modelo, risco de vazamento por output, plano de contingência, e classificação de risco final. Espelha — em SI — a profundidade que a seção de privacidade já tem.</p>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="sec-tag">Implementação</div>
+  <h2 class="sec-title">Roadmap em três ondas</h2>
+  <p class="sec-intro">Implementação incremental, sem parar o que já funciona. Cada onda entrega valor isolado e pode ser aprovada por etapa.</p>
+  <div class="road">
+    <div class="phase">
+      <div class="when">Onda 1 · 0–30 dias · Quick wins</div>
+      <h4>Fechar o gatilho e padronizar</h4>
+      <ul>
+        <li>Adicionar gatilho "envolve IA?" como ponto de entrada obrigatório na triagem.</li>
+        <li>Incluir a seção "Avaliação de SI sobre IA" no template de parecer atual.</li>
+        <li>Definir a matriz de classificação de risco (Baixo / Médio / Alto).</li>
+        <li>Acordar o RACI mínimo entre SI, Privacidade e área de IA.</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="when">Onda 2 · 30–90 dias · Operacionalizar</div>
+      <h4>Esteira e checklists vivos</h4>
+      <ul>
+        <li>Checklist de SI sobre IA aplicado nas avaliações.</li>
+        <li>Política de uso aceitável de IA / GenAI e diretriz anti-Shadow AI.</li>
+        <li>Fluxo de reavaliação por mudança de escopo formalizado.</li>
+        <li>Inventário inicial dos projetos de IA já em operação.</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="when">Onda 3 · 90 dias+ · Maturar</div>
+      <h4>Alinhar a frameworks de mercado</h4>
+      <ul>
+        <li>Mapear a governança ao NIST AI RMF e ISO/IEC 42001.</li>
+        <li>Indicadores: nº de avaliações, tempo médio, % com ressalvas, risco residual.</li>
+        <li>Avaliar comitê/fórum de IA com participação multidisciplinar.</li>
+        <li>Revisão periódica de modelos homologados.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PEDIDO -->
+<section id="pedido">
+  <div class="ask">
+    <div class="sec-tag" style="color:var(--teal-bright);justify-content:center">Decisão</div>
+    <h2>O que peço para destravar</h2>
+    <p>Três aprovações simples colocam a Onda 1 em movimento já no próximo mês, com baixo custo e sem travar os times de IA.</p>
+    <div class="asklist">
+      <div class="askitem"><div class="n">1</div><h4>Endosso do modelo</h4><p>Aval do CISO para a governança mínima e o RACI proposto entre SI, Privacidade e área de IA.</p></div>
+      <div class="askitem"><div class="n">2</div><h4>Mandato de gatilho</h4><p>Autorização para tornar a triagem de IA obrigatória na entrada de projetos.</p></div>
+      <div class="askitem"><div class="n">3</div><h4>Patrocínio da Onda 1</h4><p>Apoio para rodar os quick wins de 0–30 dias e levar resultado para a próxima revisão.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="disc">Documento de trabalho interno para discussão de governança. As referências a frameworks (NIST AI RMF, ISO/IEC 42001) e a artigos da LGPD são orientativas; a aplicação a casos concretos deve passar pela área jurídica/DPO. Não constitui parecer jurídico.</p>
+  <p>Proposta de Governança de IA · Privacidade &amp; Proteção de Dados · Time de Cyber/SI · Rumo</p>
+</footer>
+
+<script>
+  // progress bar
+  const prog=document.getElementById('progress');
+  window.addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const pct=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+    prog.style.width=pct+'%';
+  });
+  // tabs
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
